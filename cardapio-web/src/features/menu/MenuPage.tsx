@@ -222,7 +222,7 @@ export default function MenuPage({ onOpenCart }: Props) {
                             key={cat.id}
                             onClick={() => scrollToCategory(cat.id)}
                             className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-all whitespace-nowrap ${activeCategory === cat.id
-                                ? 'bg-primary-500 text-white shadow-md shadow-primary-500/20'
+                                ? 'bg-primary-500 text-black shadow-md shadow-primary-500/20'
                                 : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                                 }`}
                         >
