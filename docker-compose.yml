@@ -1,0 +1,57 @@
+services:
+  # ── Banco de Dados ────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: cardapio_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cardapio}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cardapio123}
+      POSTGRES_DB: ${POSTGRES_DB:-cardapio_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cardapio} -d ${POSTGRES_DB:-cardapio_db}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── Backend FastAPI ───────────────────────────────────────────────────────────
+  api:
+    build:
+      context: ./cardapio-api
+      dockerfile: Dockerfile
+    container_name: cardapio_api
+    restart: unless-stopped
+    env_file:
+      - ./cardapio-api/.env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cardapio}:${POSTGRES_PASSWORD:-cardapio123}@db:5432/${POSTGRES_DB:-cardapio_db}
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/uploads
+
+  # ── Frontend React (nginx) ────────────────────────────────────────────────────
+  web:
+    build:
+      context: ./cardapio-web
+      dockerfile: Dockerfile
+      args:
+        # URL relativa → Nginx faz o proxy para o container api (sem CORS)
+        VITE_API_URL: /api
+    container_name: cardapio_web
+    restart: unless-stopped
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  uploads_data:
