@@ -78,14 +78,14 @@ function ProductModal({
                             <span className="text-xl font-bold text-gray-900 w-6 text-center">{qty}</span>
                             <button
                                 onClick={() => setQty(qty + 1)}
-                                className="w-10 h-10 flex items-center justify-center bg-primary-500 text-white rounded-lg shadow-sm active:scale-95 transition-transform"
+                                className="w-10 h-10 flex items-center justify-center bg-primary-500 text-black rounded-lg shadow-sm active:scale-95 transition-transform"
                             >
                                 <Plus size={18} />
                             </button>
                         </div>
                         <div className="flex-1 text-right">
                             <p className="text-sm text-gray-500">Total</p>
-                            <p className="text-xl font-bold text-primary-600">
+                            <p className="text-xl font-bold text-gray-900">
                                 R$ {(item.price * qty).toFixed(2).replace('.', ',')}
                             </p>
                         </div>
@@ -96,7 +96,7 @@ function ProductModal({
                         className="w-full btn-primary py-3.5 text-base shadow-lg shadow-primary-500/20 active:scale-[0.98] transition-all flex items-center justify-between px-6"
                     >
                         <span>Adicionar</span>
-                        <span className="bg-white/20 px-2 py-0.5 rounded text-sm font-bold">
+                        <span className="bg-black/10 px-2 py-0.5 rounded text-sm font-bold">
                             R$ {(item.price * qty).toFixed(2).replace('.', ',')}
                         </span>
                     </button>
