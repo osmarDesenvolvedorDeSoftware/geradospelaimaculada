@@ -9,6 +9,7 @@ class Settings(BaseSettings):
 
     # Segurança
     SECRET_KEY: str
+    ADMIN_PASSWORD: str = "Gerados356@"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 horas
 
