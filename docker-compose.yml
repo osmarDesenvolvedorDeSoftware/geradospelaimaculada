@@ -10,8 +10,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-cardapio_db}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5434:5432" # Comentado para evitar conflitos na sua VPS e aumentar segurança
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cardapio} -d ${POSTGRES_DB:-cardapio_db}"]
       interval: 5s
