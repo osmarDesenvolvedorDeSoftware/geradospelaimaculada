@@ -29,12 +29,12 @@ async def create_admin(session: AsyncSession):
     if not existing:
         admin = User(
             username="admin",
-            hashed_password=get_password_hash("admin123"),
+            hashed_password=get_password_hash(os.getenv("ADMIN_PASSWORD", "Gerados356@")),
             is_active=True,
         )
         session.add(admin)
         await session.commit()
-        print("✅ Usuário admin criado (usuário: admin / senha: admin123)")
+        print(f"✅ Usuário admin criado (usuário: admin / senha: {os.getenv('ADMIN_PASSWORD', 'Gerados356@')})")
         print("⚠️  ALTERE A SENHA em produção!")
     else:
         print("ℹ️  Usuário admin já existe, pulando criação")
