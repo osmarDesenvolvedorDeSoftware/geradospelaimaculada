@@ -32,7 +32,7 @@ async def get_active_orders(db: AsyncSession) -> list[Order]:
     """Retorna todos os pedidos que ainda não foram entregues para o painel do restaurante."""
     result = await db.execute(
         select(Order)
-        .where(Order.status != "entregue")
+        .where(Order.status.notin_(["entregue", "cancelado"]))
         .options(selectinload(Order.items).selectinload(OrderItem.item))
         .order_by(Order.created_at.asc())
     )

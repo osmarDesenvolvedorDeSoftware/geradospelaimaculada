@@ -8,6 +8,7 @@ ORDER_STATUSES = [
     "em_preparacao",
     "pronto",
     "entregue",
+    "cancelado",
 ]
 
 

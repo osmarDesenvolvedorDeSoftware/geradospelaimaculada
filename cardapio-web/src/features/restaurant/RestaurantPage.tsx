@@ -13,6 +13,7 @@ const STATUS_LABELS: Record<string, string> = {
     em_preparacao: '🍳 Em Preparação',
     pronto: '✅ Pronto',
     entregue: 'Entregue',
+    cancelado: '❌ Cancelado',
 }
 
 const NEXT_STATUS: Record<string, string> = {
@@ -153,6 +154,20 @@ function OrderCard({ order }: { order: Order }) {
                             }`}
                     >
                         {mutation.isPending ? '...' : NEXT_STATUS_LABEL[order.status]}
+                    </button>
+                )}
+                {order.status !== 'entregue' && order.status !== 'cancelado' && (
+                    <button
+                        onClick={() => {
+                            if (confirm('Deseja realmente cancelar este pedido?')) {
+                                orderApi.updateStatus(order.id, 'cancelado').then(() => {
+                                    queryClient.invalidateQueries({ queryKey: ['restaurant-orders'] })
+                                })
+                            }
+                        }}
+                        className="text-xs font-medium text-red-500 hover:text-red-700 underline px-2 py-1"
+                    >
+                        Cancelar
                     </button>
                 )}
             </div>
