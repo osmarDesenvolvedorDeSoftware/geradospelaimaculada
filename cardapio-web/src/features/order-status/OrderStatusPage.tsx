@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import type { Order } from '@/services/api'
 import { orderApi } from '@/services/api'
-import { CheckCircle, Clock, ChefHat, Bell, Package } from 'lucide-react'
+import { CheckCircle, Clock, ChefHat, Bell, Package, MessageCircle } from 'lucide-react'
 import React from 'react'
 
 const STATUS_INFO: Record<string, { label: string; icon: React.ReactNode; color: string; description: string }> = {
@@ -24,10 +24,10 @@ const STATUS_INFO: Record<string, { label: string; icon: React.ReactNode; color:
         description: 'Pagamento confirmado! Seu pedido está sendo preparado.',
     },
     pronto: {
-        label: 'Pronto para Retirada!',
+        label: 'Pronto para Retirada! 🍽️',
         icon: <Package size={40} />,
         color: 'text-green-500',
-        description: 'Seu pedido está pronto. O atendente já vai até você!',
+        description: 'Seu pedido está pronto! Seu nome está aparecendo na TV do balcão para retirada.',
     },
     entregue: {
         label: 'Pedido Entregue ✅',
@@ -136,9 +136,28 @@ export default function OrderStatusPage({ orderId, onNewOrder }: Props) {
                 </div>
 
                 {isDelivered && (
-                    <button onClick={onNewOrder} className="btn-primary w-full">
+                    <button onClick={onNewOrder} className="btn-primary w-full shadow-lg">
                         Fazer novo pedido
                     </button>
+                )}
+
+                {order.status === 'pagamento_declarado' && (
+                    <div className="w-full space-y-3">
+                        <p className="text-gray-500 text-xs text-center px-4">
+                            Deseja enviar o comprovante novamente ou falar com o bar?
+                        </p>
+                        <a
+                            href={`https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
+                                `Olá! Segue o comprovante do meu pedido #${orderId.slice(0, 8).toUpperCase()} (Mesa ${order.table_number}).`
+                            )}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="w-full bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 font-bold px-4 py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+                        >
+                            <MessageCircle size={20} />
+                            Enviar Comprovante (WhatsApp)
+                        </a>
+                    </div>
                 )}
 
                 {!isDelivered && (

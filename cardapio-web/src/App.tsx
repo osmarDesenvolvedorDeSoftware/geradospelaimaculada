@@ -5,13 +5,14 @@ import CartPage from './features/cart/CartPage'
 import PaymentPage from './features/payment/PaymentPage'
 import OrderStatusPage from './features/order-status/OrderStatusPage'
 import RestaurantPage from './features/restaurant/RestaurantPage'
+import TvDashboard from './features/tv/TvDashboard'
 import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2, staleTime: 30000 } },
 })
 
-type Page = 'menu' | 'cart' | 'payment' | 'order-status' | 'restaurant'
+type Page = 'menu' | 'cart' | 'payment' | 'order-status' | 'restaurant' | 'tv'
 
 function AppContent() {
   const [page, setPage] = useState<Page>('menu')
@@ -22,6 +23,10 @@ function AppContent() {
     const hash = window.location.hash
     if (hash === '#/restaurante') {
       setPage('restaurant')
+      return
+    }
+    if (hash === '#/tv') {
+      setPage('tv')
       return
     }
 
@@ -39,6 +44,7 @@ function AppContent() {
   }
 
   if (page === 'restaurant') return <RestaurantPage />
+  if (page === 'tv') return <TvDashboard />
 
   if (page === 'cart')
     return <CartPage onBack={() => goTo('menu')} onOrderCreated={(id) => goTo('payment', id)} />

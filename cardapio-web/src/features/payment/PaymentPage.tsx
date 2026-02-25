@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import { useMutation, useQuery } from '@tanstack/react-query'
-import { Copy, CheckCircle } from 'lucide-react'
+import { Copy, CheckCircle, MessageCircle } from 'lucide-react'
 import { QRCodeSVG } from 'qrcode.react'
 import { orderApi } from '@/services/api'
+
+const WA_NUMBER = import.meta.env.VITE_WHATSAPP_NUMBER || ''
 
 interface Props {
     orderId: string
@@ -96,9 +98,25 @@ export default function PaymentPage({ orderId, onDeclared }: Props) {
                         Já fez o pagamento?
                     </p>
                     {declared ? (
-                        <div className="flex items-center justify-center gap-2 text-green-600 font-semibold py-2">
-                            <CheckCircle size={20} />
-                            Restaurante avisado!
+                        <div className="space-y-4">
+                            <div className="flex items-center justify-center gap-2 text-green-600 font-bold py-2 text-lg">
+                                <CheckCircle size={24} />
+                                Restaurante avisado!
+                            </div>
+                            <p className="text-gray-600 text-center text-sm">
+                                Para agilizar seu pedido, envie o comprovante pelo WhatsApp abaixo ou mostre no balcão:
+                            </p>
+                            <a
+                                href={`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(
+                                    `Olá! Segue o comprovante do meu pedido #${orderId.slice(0, 8).toUpperCase()} (Mesa ${order.table_number}).`
+                                )}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="w-full bg-[#25D366] hover:bg-[#20ba5a] text-white font-bold px-4 py-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all transform active:scale-95"
+                            >
+                                <MessageCircle size={24} />
+                                Enviar Comprovante WhatsApp
+                            </a>
                         </div>
                     ) : (
                         <button
