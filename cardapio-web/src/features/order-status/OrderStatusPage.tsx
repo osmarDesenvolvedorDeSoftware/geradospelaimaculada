@@ -18,22 +18,22 @@ const STATUS_INFO: Record<string, { label: string; icon: React.ReactNode; color:
         description: 'O restaurante foi avisado e está verificando seu pagamento.',
     },
     em_preparacao: {
-        label: 'Em Preparação 🍳',
+        label: 'Em Preparação',
         icon: <ChefHat size={40} />,
         color: 'text-orange-500',
         description: 'Pagamento confirmado! Seu pedido está sendo preparado.',
     },
     pronto: {
-        label: 'Pronto para Retirada! 🍽️',
+        label: 'Pronto para Retirada!',
         icon: <Package size={40} />,
         color: 'text-green-500',
         description: 'Seu pedido está pronto! Seu nome está aparecendo na TV do balcão para retirada.',
     },
     entregue: {
-        label: 'Pedido Entregue ✅',
+        label: 'Pedido Entregue',
         icon: <CheckCircle size={40} />,
         color: 'text-green-600',
-        description: 'Obrigado pela preferência! Bom apetite! 😊',
+        description: 'Obrigado pela preferência! Bom apetite!',
     },
 }
 
@@ -83,7 +83,7 @@ export default function OrderStatusPage({ orderId, onNewOrder }: Props) {
                 {order.observations && (
                     <div className="card w-full p-4 border border-yellow-200 bg-yellow-50">
                         <h3 className="font-semibold text-yellow-800 mb-1 flex items-center gap-2">
-                            <span>📝</span> Observações
+                            Observações
                         </h3>
                         <p className="text-yellow-700 text-sm">{order.observations}</p>
                     </div>

@@ -9,11 +9,11 @@ import HistoryPage from '@/features/restaurant/HistoryPage'
 
 const STATUS_LABELS: Record<string, string> = {
     aguardando_pagamento: 'Aguardando Pagamento',
-    pagamento_declarado: '🔔 Pagamento Declarado',
-    em_preparacao: '🍳 Em Preparação',
-    pronto: '✅ Pronto',
+    pagamento_declarado: 'Pagamento Declarado',
+    em_preparacao: 'Em Preparação',
+    pronto: 'Pronto',
     entregue: 'Entregue',
-    cancelado: '❌ Cancelado',
+    cancelado: 'Cancelado',
 }
 
 const NEXT_STATUS: Record<string, string> = {
@@ -288,7 +288,6 @@ export default function RestaurantPage() {
                         )}
                         {!isLoading && activeOrders.length === 0 && (
                             <div className="text-center py-16 text-gray-400">
-                                <p className="text-5xl mb-3">🍽️</p>
                                 <p className="font-medium">Nenhum pedido ativo no momento</p>
                             </div>
                         )}

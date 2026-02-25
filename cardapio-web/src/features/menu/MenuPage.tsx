@@ -43,7 +43,6 @@ function ProductModal({
                         <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                     ) : (
                         <div className="w-full h-full flex items-center justify-center text-gray-300 bg-gray-50">
-                            <span className="text-4xl">🍽️</span>
                         </div>
                     )}
                     <button
@@ -171,7 +170,6 @@ export default function MenuPage({ onOpenCart }: Props) {
     if (isError) return (
         <div className="flex items-center justify-center min-h-screen p-6">
             <div className="text-center">
-                <p className="text-4xl mb-3">😕</p>
                 <p className="text-gray-700 font-semibold">Erro ao carregar o cardápio</p>
                 <p className="text-gray-500 text-sm mt-1">Verifique sua conexão e tente novamente</p>
             </div>
@@ -239,7 +237,6 @@ export default function MenuPage({ onOpenCart }: Props) {
             <div className="px-4 space-y-8 mt-4">
                 {filteredCategories.length === 0 && (
                     <div className="text-center py-12 text-gray-400">
-                        <p className="text-4xl mb-3">🔍</p>
                         <p>Nenhum item encontrado para "{searchTerm}"</p>
                     </div>
                 )}
@@ -271,7 +268,6 @@ export default function MenuPage({ onOpenCart }: Props) {
                                                 <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
                                             ) : (
                                                 <div className="w-full h-full flex items-center justify-center text-gray-300">
-                                                    <span className="text-2xl">🍽️</span>
                                                 </div>
                                             )}
                                             {qty > 0 && (

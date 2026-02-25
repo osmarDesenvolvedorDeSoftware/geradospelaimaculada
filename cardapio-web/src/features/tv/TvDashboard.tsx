@@ -121,7 +121,7 @@ export default function TvDashboard() {
                                     {order.customer_name.split(' ')[0]}
                                 </div>
                                 <div className="bg-green-500/10 text-green-400 px-8 py-4 rounded-2xl text-3xl font-black uppercase border border-green-500/20">
-                                    PRONTO ✅
+                                    PRONTO
                                 </div>
                                 <div className="mt-8 text-slate-500 font-bold text-xl uppercase italic">
                                     Mesa {order.table_number}
