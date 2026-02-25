@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     PIX_KEY_TYPE: str = "email"
     RESTAURANT_NAME: str = "Restaurante"
     RESTAURANT_CITY: str = "Brasil"
+    BAR_WHATSAPP: str = ""
 
     # CORS / Frontend
     FRONTEND_URL: str = "http://localhost:5173"
