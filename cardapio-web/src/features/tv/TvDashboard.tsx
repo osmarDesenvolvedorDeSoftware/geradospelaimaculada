@@ -5,7 +5,7 @@ import { restaurantApi } from '@/services/api'
 
 export default function TvDashboard() {
     const [isStarted, setIsStarted] = useState(false)
-    const [lastReadyId, setLastReadyId] = useState<string | null>(null)
+    const lastReadyIdRef = useRef<string | null>(null)
     const wsRef = useRef<WebSocket | null>(null)
     const queryClient = useQueryClient()
 
@@ -21,39 +21,71 @@ export default function TvDashboard() {
     const announceOrder = (customerName: string) => {
         if (!isStarted) return
 
-        // 1. Som de sino
-        const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
-        audio.play().catch(e => console.error("Erro ao tocar áudio:", e))
+        console.log(`Anunciando pedido de: ${customerName}`)
 
-        // 2. Voz anunciando
-        setTimeout(() => {
-            const utterance = new SpeechSynthesisUtterance(`Pedido de ${customerName} pronto para retirada`)
-            utterance.lang = 'pt-BR'
-            utterance.rate = 0.9
-            window.speechSynthesis.speak(utterance)
-        }, 1000)
+        try {
+            // 1. Som de sino
+            const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
+            audio.volume = 1.0
+            audio.play().catch(e => console.error("Erro ao tocar áudio:", e))
+
+            // 2. Voz anunciando
+            setTimeout(() => {
+                window.speechSynthesis.cancel() // Limpa anúncios anteriores
+                const utterance = new SpeechSynthesisUtterance(`Pedido de ${customerName} pronto para retirada`)
+                utterance.lang = 'pt-BR'
+                utterance.rate = 0.9
+                utterance.volume = 1.0
+                window.speechSynthesis.speak(utterance)
+            }, 1000)
+        } catch (err) {
+            console.error("Falha no anúncio:", err)
+        }
     }
 
     // WebSocket para tempo real
     useEffect(() => {
-        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
-        const wsUrl = apiUrl.replace('http', 'ws').replace('/api', '') + '/api/ws/restaurant'
-        const ws = new WebSocket(wsUrl)
-        wsRef.current = ws
+        if (!isStarted) return
 
-        ws.onmessage = (event) => {
-            const msg = JSON.parse(event.data)
-            if (msg.event === 'status_atualizado' && msg.data.status === 'pronto') {
-                queryClient.invalidateQueries({ queryKey: ['tv-orders'] })
-                if (msg.data.order_id !== lastReadyId) {
-                    setLastReadyId(msg.data.order_id)
-                    announceOrder(msg.data.customer_name)
+        let socket: WebSocket | null = null
+        let reconnectTimeout: ReturnType<typeof setTimeout>
+
+        const connect = () => {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api'
+            const wsUrl = apiUrl.replace('http', 'ws').replace('/api', '') + '/api/ws/restaurant'
+
+            socket = new WebSocket(wsUrl)
+            wsRef.current = socket
+
+            socket.onmessage = (event) => {
+                const msg = JSON.parse(event.data)
+                if (msg.event === 'status_atualizado' && msg.data.status === 'pronto') {
+                    queryClient.invalidateQueries({ queryKey: ['tv-orders'] })
+                    if (msg.data.order_id !== lastReadyIdRef.current) {
+                        lastReadyIdRef.current = msg.data.order_id
+                        announceOrder(msg.data.customer_name)
+                    }
                 }
+            }
+
+            socket.onclose = () => {
+                console.log("WebSocket desconectado. Tentando reconectar...")
+                reconnectTimeout = setTimeout(connect, 3000)
+            }
+
+            socket.onerror = (err) => {
+                console.error("Erro no WebSocket:", err)
+                socket?.close()
             }
         }
 
-        return () => ws.close()
-    }, [queryClient, lastReadyId, isStarted])
+        connect()
+
+        return () => {
+            if (socket) socket.close()
+            clearTimeout(reconnectTimeout)
+        }
+    }, [queryClient, isStarted])
 
     if (!isStarted) {
         return (
@@ -66,7 +98,16 @@ export default function TvDashboard() {
                     Clique no botão abaixo para ativar os avisos sonoros da TV.
                 </p>
                 <button
-                    onClick={() => setIsStarted(true)}
+                    onClick={() => {
+                        // Desbloqueia o áudio/voz com ação do usuário
+                        const silentUtterance = new SpeechSynthesisUtterance("")
+                        window.speechSynthesis.speak(silentUtterance)
+
+                        const silentAudio = new Audio()
+                        silentAudio.play().catch(() => { })
+
+                        setIsStarted(true)
+                    }}
                     className="flex items-center gap-4 bg-primary-600 hover:bg-primary-500 text-white text-3xl font-bold px-12 py-6 rounded-3xl transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-primary-900/50"
                 >
                     <Play size={40} fill="currentColor" />
