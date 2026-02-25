@@ -141,10 +141,12 @@ export default function OrderStatusPage({ orderId, onNewOrder }: Props) {
                     </button>
                 )}
 
-                {order.status === 'pagamento_declarado' && (
+                {(order.status === 'aguardando_pagamento' || order.status === 'pagamento_declarado') && (
                     <div className="w-full space-y-3">
                         <p className="text-gray-500 text-xs text-center px-4">
-                            Deseja enviar o comprovante novamente ou falar com o bar?
+                            {order.status === 'aguardando_pagamento'
+                                ? 'Já fez o pagamento? Envie o comprovante pelo WhatsApp:'
+                                : 'Deseja enviar o comprovante novamente ou falar com o bar?'}
                         </p>
                         <a
                             href={`https://wa.me/${import.meta.env.VITE_WHATSAPP_NUMBER}?text=${encodeURIComponent(
@@ -152,7 +154,7 @@ export default function OrderStatusPage({ orderId, onNewOrder }: Props) {
                             )}`}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="w-full bg-[#25D366]/10 text-[#25D366] border border-[#25D366]/20 font-bold px-4 py-3 rounded-xl flex items-center justify-center gap-2 transition-all active:scale-95"
+                            className="w-full bg-[#25D366] text-white font-bold px-4 py-3 rounded-xl flex items-center justify-center gap-2 shadow-md transition-all active:scale-95"
                         >
                             <MessageCircle size={20} />
                             Enviar Comprovante (WhatsApp)
