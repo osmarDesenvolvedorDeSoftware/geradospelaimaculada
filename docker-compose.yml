@@ -45,6 +45,7 @@ services:
       args:
         # URL relativa → Nginx faz o proxy para o container api (sem CORS)
         VITE_API_URL: /api
+        VITE_WHATSAPP_NUMBER: ${BAR_WHATSAPP:-5516996142899}
     container_name: cardapio_web
     restart: unless-stopped
     ports:
