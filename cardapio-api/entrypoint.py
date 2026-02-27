@@ -16,12 +16,12 @@ async def wait_for_db():
         try:
             conn = await asyncpg.connect(url)
             await conn.close()
-            print("✅ Banco conectado!", flush=True)
+            print("Banco conectado!", flush=True)
             return
         except Exception:
-            print(f"⏳ Aguardando banco... {i+1}/30", flush=True)
+            print(f"Aguardando banco... {i+1}/30", flush=True)
             await asyncio.sleep(2)
-    print("❌ Banco não respondeu após 60s", flush=True)
+    print("Banco nao respondeu apos 60s", flush=True)
     sys.exit(1)
 
 
@@ -34,7 +34,7 @@ if result.returncode != 0:
     sys.exit(result.returncode)
 
 # Inicia o servidor FastAPI
-print("🚀 Iniciando API...", flush=True)
+print("Iniciando API...", flush=True)
 os.execv(
     sys.executable,
     [

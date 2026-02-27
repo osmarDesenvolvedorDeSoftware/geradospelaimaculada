@@ -16,6 +16,7 @@ class Item(Base):
     name: Mapped[str] = mapped_column(String(150), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
     price: Mapped[float] = mapped_column(Numeric(10, 2), nullable=False)
+    member_price: Mapped[float | None] = mapped_column(Numeric(10, 2), nullable=True)  # None = sem desconto para membros
     image_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
 

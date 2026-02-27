@@ -1,28 +1,33 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useQuery } from '@tanstack/react-query'
-import { Plus, Minus, Search, X, ShoppingBag, ChevronRight } from 'lucide-react'
+import { Plus, Minus, Search, X, ShoppingBag, ChevronRight, User } from 'lucide-react'
 import { menuApi } from '@/services/api'
 import type { Category, Item } from '@/services/api'
-import { useCartStore } from '@/store/cartStore'
+import { useCartStore, useMemberStore } from '@/store/cartStore'
 import { getTableNumber } from '@/hooks/useSession'
 
 interface Props {
     onOpenCart: () => void
+    onMemberLogin: () => void
+    onMemberAccount: () => void
 }
 
 // ─── Componente de Modal de Produto ───────────────────────────────────────────
 function ProductModal({
     item,
     initialQty,
+    memberPrice,
     onClose,
     onAdd,
 }: {
     item: Item
     initialQty: number
+    memberPrice: number | null
     onClose: () => void
-    onAdd: (qty: number) => void
+    onAdd: (qty: number, price: number) => void
 }) {
     const [qty, setQty] = useState(initialQty > 0 ? initialQty : 1)
+    const effectivePrice = memberPrice ?? item.price
 
     // Fecha ao clicar fora ou ESC
     useEffect(() => {
@@ -56,11 +61,23 @@ function ProductModal({
                 {/* Conteúdo scrollável */}
                 <div className="p-6 overflow-y-auto flex-1">
                     <h2 className="text-2xl font-bold text-gray-900 mb-2">{item.name}</h2>
-                    <p className="text-gray-600 leading-relaxed mb-6">
+                    <p className="text-gray-600 leading-relaxed mb-4">
                         {item.description || "Delicioso e feito na hora para você."}
                     </p>
-
-                    {/* Aqui poderia entrar campo de observação, opções extras, etc */}
+                    {/* Preço de membro */}
+                    {memberPrice !== null && memberPrice !== item.price && (
+                        <div className="bg-green-50 border border-green-100 rounded-xl px-4 py-2.5 mb-2">
+                            <p className="text-xs text-green-700 font-medium mb-0.5">Preço de membro</p>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-green-700 font-bold text-lg">
+                                    R$ {memberPrice.toFixed(2).replace('.', ',')}
+                                </span>
+                                <span className="text-gray-400 line-through text-sm">
+                                    R$ {item.price.toFixed(2).replace('.', ',')}
+                                </span>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 {/* Footer fixo */}
@@ -85,18 +102,18 @@ function ProductModal({
                         <div className="flex-1 text-right">
                             <p className="text-sm text-gray-500">Total</p>
                             <p className="text-xl font-bold text-gray-900">
-                                R$ {(item.price * qty).toFixed(2).replace('.', ',')}
+                                R$ {(effectivePrice * qty).toFixed(2).replace('.', ',')}
                             </p>
                         </div>
                     </div>
 
                     <button
-                        onClick={() => { onAdd(qty); onClose() }}
+                        onClick={() => { onAdd(qty, effectivePrice); onClose() }}
                         className="w-full btn-primary py-3.5 text-base shadow-lg shadow-primary-500/20 active:scale-[0.98] transition-all flex items-center justify-between px-6"
                     >
                         <span>Adicionar</span>
                         <span className="bg-black/10 px-2 py-0.5 rounded text-sm font-bold">
-                            R$ {(item.price * qty).toFixed(2).replace('.', ',')}
+                            R$ {(effectivePrice * qty).toFixed(2).replace('.', ',')}
                         </span>
                     </button>
                 </div>
@@ -106,13 +123,22 @@ function ProductModal({
 }
 
 // ─── Página Principal ─────────────────────────────────────────────────────────
-export default function MenuPage({ onOpenCart }: Props) {
+export default function MenuPage({ onOpenCart, onMemberLogin, onMemberAccount }: Props) {
     const tableNumber = getTableNumber()
     const { items: cartItems, addItem, updateQuantity, totalItems, total } = useCartStore()
+    const { member, isLoggedIn, logout } = useMemberStore()
     const [searchTerm, setSearchTerm] = useState('')
     const [selectedItem, setSelectedItem] = useState<Item | null>(null)
     const [activeCategory, setActiveCategory] = useState<string>('')
     const categoryRefs = useRef<Record<string, HTMLElement | null>>({})
+
+    // Resolve o preço a exibir para um item (membro ou normal)
+    const getEffectivePrice = (item: Item): number => {
+        if (isLoggedIn() && item.member_price !== undefined && item.member_price !== null) {
+            return item.member_price
+        }
+        return item.price
+    }
 
     const { data: categories = [], isLoading, isError } = useQuery({
         queryKey: ['menu'],
@@ -187,12 +213,32 @@ export default function MenuPage({ onOpenCart }: Props) {
                             <h1 className="text-xl font-bold">Gerados pela imaculada</h1>
                             {tableNumber > 0 && <p className="text-primary-100 text-xs font-medium">Mesa {tableNumber}</p>}
                         </div>
-                        {totalItems() > 0 && (
-                            <button onClick={onOpenCart} className="bg-white/20 p-2 rounded-full relative">
-                                <ShoppingBag size={20} />
-                                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-primary-500">{totalItems()}</span>
-                            </button>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {/* Botão de membro */}
+                            {isLoggedIn() ? (
+                                <button
+                                    onClick={onMemberAccount}
+                                    className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
+                                >
+                                    <User size={14} />
+                                    {member?.name.split(' ')[0]}
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={onMemberLogin}
+                                    className="flex items-center gap-1.5 bg-white/20 hover:bg-white/30 text-white text-xs font-semibold px-3 py-1.5 rounded-full transition-colors"
+                                >
+                                    <User size={14} />
+                                    Sou membro
+                                </button>
+                            )}
+                            {totalItems() > 0 && (
+                                <button onClick={onOpenCart} className="bg-white/20 p-2 rounded-full relative">
+                                    <ShoppingBag size={20} />
+                                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full border border-primary-500">{totalItems()}</span>
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* Barra de Busca */}
@@ -288,9 +334,23 @@ export default function MenuPage({ onOpenCart }: Props) {
                                                 )}
                                             </div>
                                             <div className="flex items-center justify-between mt-2">
-                                                <span className="text-gray-900 font-bold">
-                                                    R$ {item.price.toFixed(2).replace('.', ',')}
-                                                </span>
+                                                <div>
+                                                    {/* Preço: mostra promoção de membro se logado */}
+                                                    {isLoggedIn() && item.member_price !== undefined && item.member_price !== null ? (
+                                                        <div className="flex items-baseline gap-1.5">
+                                                            <span className="text-green-600 font-bold">
+                                                                R$ {item.member_price.toFixed(2).replace('.', ',')}
+                                                            </span>
+                                                            <span className="text-gray-400 line-through text-xs">
+                                                                R$ {item.price.toFixed(2).replace('.', ',')}
+                                                            </span>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-gray-900 font-bold">
+                                                            R$ {item.price.toFixed(2).replace('.', ',')}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation()
@@ -336,21 +396,18 @@ export default function MenuPage({ onOpenCart }: Props) {
                 <ProductModal
                     item={selectedItem}
                     initialQty={getQuantity(selectedItem.id)}
+                    memberPrice={isLoggedIn() && selectedItem.member_price !== undefined ? (selectedItem.member_price ?? null) : null}
                     onClose={() => setSelectedItem(null)}
-                    onAdd={(qty) => {
-                        // Se já existe, atualiza. Se não, adiciona.
-                        // Como updateQuantity substitui o valor, precisamos saber se é incremento ou replace.
-                        // Simplificação: o modal dita a quantidade final desejada.
+                    onAdd={(qty, price) => {
                         if (getQuantity(selectedItem.id) > 0) {
                             updateQuantity(selectedItem.id, qty)
                         } else {
                             addItem({
                                 id: selectedItem.id,
                                 name: selectedItem.name,
-                                price: selectedItem.price,
+                                price,
                                 image_url: selectedItem.image_url,
                             })
-                            // Se a qtd for maior que 1, atualizamos (addItem adiciona 1)
                             if (qty > 1) updateQuantity(selectedItem.id, qty)
                         }
                     }}

@@ -5,12 +5,25 @@ const api = axios.create({
     headers: { 'Content-Type': 'application/json' },
 })
 
-// Injeta o token JWT automaticamente nas requisições autenticadas
+// Injeta o token JWT automaticamente nas requisições autenticadas.
+// Rotas do painel (/restaurant/, /auth/) usam restaurant_token.
+// Rotas do membro (/members/) usam member_token.
+// Rotas do cliente (/orders) usam member_token se disponível.
 api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('restaurant_token')
-    if (token) {
-        config.headers.Authorization = `Bearer ${token}`
+    const url = config.url ?? ''
+    const restaurantToken = localStorage.getItem('restaurant_token')
+    const memberToken = localStorage.getItem('member_token')
+
+    if (url.startsWith('/restaurant') || url.startsWith('/auth')) {
+        if (restaurantToken) config.headers.Authorization = `Bearer ${restaurantToken}`
+    } else if (url.startsWith('/members')) {
+        if (memberToken) config.headers.Authorization = `Bearer ${memberToken}`
+    } else {
+        // Rotas públicas com suporte opcional a membro (/orders, /menu, etc.)
+        const token = memberToken || restaurantToken
+        if (token) config.headers.Authorization = `Bearer ${token}`
     }
+
     return config
 })
 

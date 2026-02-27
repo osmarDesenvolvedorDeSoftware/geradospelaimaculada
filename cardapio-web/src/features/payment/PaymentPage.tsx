@@ -126,7 +126,7 @@ export default function PaymentPage({ orderId, onDeclared }: Props) {
                         >
                             {declareMutation.isPending
                                 ? 'Avisando...'
-                                : '✅ Já paguei! Avisar o restaurante'}
+                                : 'Já paguei! Avisar o restaurante'}
                         </button>
                     )}
                 </div>

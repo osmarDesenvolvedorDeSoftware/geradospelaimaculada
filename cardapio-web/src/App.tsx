@@ -6,13 +6,15 @@ import PaymentPage from './features/payment/PaymentPage'
 import OrderStatusPage from './features/order-status/OrderStatusPage'
 import RestaurantPage from './features/restaurant/RestaurantPage'
 import TvDashboard from './features/tv/TvDashboard'
+import MemberLoginPage from './features/member/MemberLoginPage'
+import MemberAccountPage from './features/member/MemberAccountPage'
 import './index.css'
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { retry: 2, staleTime: 30000 } },
 })
 
-type Page = 'menu' | 'cart' | 'payment' | 'order-status' | 'restaurant' | 'tv'
+type Page = 'menu' | 'cart' | 'payment' | 'order-status' | 'restaurant' | 'tv' | 'member-login' | 'member-account'
 
 function AppContent() {
   const [page, setPage] = useState<Page>('menu')
@@ -46,8 +48,28 @@ function AppContent() {
   if (page === 'restaurant') return <RestaurantPage />
   if (page === 'tv') return <TvDashboard />
 
+  if (page === 'member-login')
+    return (
+      <MemberLoginPage
+        onBack={() => goTo('menu')}
+        onSuccess={() => goTo('menu')}
+      />
+    )
+
+  if (page === 'member-account')
+    return <MemberAccountPage onBack={() => goTo('menu')} />
+
   if (page === 'cart')
-    return <CartPage onBack={() => goTo('menu')} onOrderCreated={(id) => goTo('payment', id)} />
+    return (
+      <CartPage
+        onBack={() => goTo('menu')}
+        onOrderCreated={(id) => goTo('payment', id)}
+        onOrderLancadoNaConta={(id) => {
+          localStorage.setItem('cardapio_active_order', id)
+          goTo('order-status', id)
+        }}
+      />
+    )
 
   if (page === 'payment' && orderId)
     return <PaymentPage orderId={orderId} onDeclared={() => goTo('order-status')} />
@@ -64,7 +86,13 @@ function AppContent() {
       />
     )
 
-  return <MenuPage onOpenCart={() => goTo('cart')} />
+  return (
+    <MenuPage
+      onOpenCart={() => goTo('cart')}
+      onMemberLogin={() => goTo('member-login')}
+      onMemberAccount={() => goTo('member-account')}
+    />
+  )
 }
 
 export default function App() {

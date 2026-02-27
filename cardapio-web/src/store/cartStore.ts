@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import type { Member } from '@/services/api'
 
 export interface CartItem {
     id: string
     name: string
-    price: number
+    price: number        // preço que foi adicionado (já resolvido: membro ou normal)
     quantity: number
     image_url?: string
 }
@@ -62,3 +63,37 @@ export const useCartStore = create<CartStore>()(
         { name: 'cardapio_cart' }
     )
 )
+
+// ─── Store do Membro logado ───────────────────────────────────────────────────
+
+interface MemberStore {
+    member: Member | null
+    token: string | null
+    login: (member: Member, token: string) => void
+    logout: () => void
+    isLoggedIn: () => boolean
+}
+
+export const useMemberStore = create<MemberStore>()(
+    persist(
+        (set, get) => ({
+            member: null,
+            token: null,
+
+            login: (member, token) => {
+                set({ member, token })
+                // coloca o token num lugar que o axios interceptor já lê se necessário
+                localStorage.setItem('member_token', token)
+            },
+
+            logout: () => {
+                set({ member: null, token: null })
+                localStorage.removeItem('member_token')
+            },
+
+            isLoggedIn: () => !!get().token && !!get().member,
+        }),
+        { name: 'cardapio_member' }
+    )
+)
+

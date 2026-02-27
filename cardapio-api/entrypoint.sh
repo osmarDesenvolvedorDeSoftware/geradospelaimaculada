@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-echo "⏳ Aguardando banco de dados..."
+echo "Aguardando banco de dados..."
 # Espera até o banco estar disponível
 python -c "
 import asyncio, asyncpg, os, sys
@@ -12,19 +12,19 @@ async def wait():
         try:
             conn = await asyncpg.connect(url)
             await conn.close()
-            print('✅ Banco conectado!')
+            print('Banco conectado!')
             return
         except Exception as e:
-            print(f'⏳ Tentativa {i+1}/30...', flush=True)
+            print(f'Aguardando... {i+1}/30...', flush=True)
             await asyncio.sleep(2)
-    print('❌ Banco não respondeu')
+    print('Banco nao respondeu')
     sys.exit(1)
 
 asyncio.run(wait())
 "
 
-echo "🗄️  Inicializando banco de dados..."
+echo "Inicializando banco de dados..."
 python init_db.py
 
-echo "🚀 Iniciando API..."
+echo "Iniciando API..."
 exec uvicorn app.main:app --host 0.0.0.0 --port 8000

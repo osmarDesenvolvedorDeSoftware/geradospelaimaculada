@@ -179,12 +179,14 @@ function ItemForm({
     defaultCategoryId?: string
     onSave: (data: {
         name: string; category_id: string; price: number
+        member_price?: number
         description?: string; image_url?: string
     }) => void
     onClose: () => void
 }) {
     const [name, setName] = useState(initial?.name ?? '')
     const [price, setPrice] = useState(initial?.price?.toString() ?? '')
+    const [memberPrice, setMemberPrice] = useState(initial?.member_price?.toString() ?? '')
     const [description, setDescription] = useState(initial?.description ?? '')
     const [imageUrl, setImageUrl] = useState(initial?.image_url ?? '')
     const [categoryId, setCategoryId] = useState(initial?.category_id ?? defaultCategoryId ?? '')
@@ -212,9 +214,9 @@ function ItemForm({
                     />
                 </div>
 
-                {/* Preço + Categoria */}
+                {/* Preço + Preço de Membro + Categoria */}
                 <div className="flex gap-2">
-                    <div className="w-32">
+                    <div className="w-28">
                         <label className="text-xs font-medium text-gray-500 mb-1 block">Preço (R$) *</label>
                         <input
                             type="number" min="0" step="0.01"
@@ -222,6 +224,16 @@ function ItemForm({
                             value={price}
                             onChange={(e) => setPrice(e.target.value)}
                             className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary-400"
+                        />
+                    </div>
+                    <div className="w-28">
+                        <label className="text-xs font-medium text-gray-500 mb-1 block">Membro (R$)</label>
+                        <input
+                            type="number" min="0" step="0.01"
+                            placeholder="Opcional"
+                            value={memberPrice}
+                            onChange={(e) => setMemberPrice(e.target.value)}
+                            className="w-full border border-green-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-400"
                         />
                     </div>
                     <div className="flex-1">
@@ -256,6 +268,7 @@ function ItemForm({
                         isValid && onSave({
                             name: name.trim(), category_id: categoryId,
                             price: parseFloat(price),
+                            member_price: memberPrice && parseFloat(memberPrice) > 0 ? parseFloat(memberPrice) : undefined,
                             description: description.trim() || undefined,
                             image_url: imageUrl || undefined,
                         })
@@ -449,7 +462,14 @@ export default function ProductsPage() {
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-sm font-semibold text-gray-900 truncate">{item.name}</p>
-                                                    <p className="text-sm text-primary-600 font-bold">R$ {item.price.toFixed(2).replace('.', ',')}</p>
+                                                    <div className="flex items-baseline gap-1.5">
+                                                        <p className="text-sm text-primary-600 font-bold">R$ {item.price.toFixed(2).replace('.', ',')}</p>
+                                                        {item.member_price !== undefined && item.member_price !== null && (
+                                                            <p className="text-xs text-green-600 font-medium">
+                                                                membro: R$ {item.member_price.toFixed(2).replace('.', ',')}
+                                                            </p>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="flex items-center gap-1.5">
                                                     {/* Toggle ativo */}
@@ -514,7 +534,14 @@ export default function ProductsPage() {
                                 <div className="flex-1 min-w-0">
                                     <p className="font-semibold text-gray-900 truncate">{item.name}</p>
                                     <p className="text-xs text-gray-400">{(item as typeof item & { categoryName: string }).categoryName}</p>
-                                    <p className="text-sm text-primary-600 font-bold">R$ {item.price.toFixed(2).replace('.', ',')}</p>
+                                    <div className="flex items-baseline gap-1.5">
+                                        <p className="text-sm text-primary-600 font-bold">R$ {item.price.toFixed(2).replace('.', ',')}</p>
+                                        {item.member_price !== undefined && item.member_price !== null && (
+                                            <p className="text-xs text-green-600 font-medium">
+                                                membro: R$ {item.member_price.toFixed(2).replace('.', ',')}
+                                            </p>
+                                        )}
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                     <button

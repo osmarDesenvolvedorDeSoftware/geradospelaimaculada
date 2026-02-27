@@ -40,44 +40,52 @@ async def get_active_orders(db: AsyncSession) -> list[Order]:
 
 
 async def create(
-    db: AsyncSession, data: OrderCreate, items_db: list[Item], pix_payload: str
+    db: AsyncSession,
+    data: OrderCreate,
+    items_db: list[Item],
+    pix_payload: Optional[str],
+    unit_price_fn=None,  # callable(item_id: str) -> float — se None usa item.price
 ) -> Order:
-    # Calcula o total com base nos preços atuais dos itens
     items_map = {item.id: item for item in items_db}
-    total = sum(
-        float(items_map[oi.item_id].price) * oi.quantity for oi in data.items
-    )
+
+    def _price(item_id: str) -> float:
+        if unit_price_fn:
+            return unit_price_fn(item_id)
+        return float(items_map[item_id].price)
+
+    total = sum(_price(oi.item_id) * oi.quantity for oi in data.items)
+
+    # Pedidos na conta começam direto em "conta" (sem etapa de pagamento pix)
+    initial_status = "conta" if data.payment_method == "conta" else "aguardando_pagamento"
 
     order = Order(
         id=str(uuid.uuid4()),
         session_id=data.session_id,
+        member_id=data.member_id,
+        payment_method=data.payment_method,
         table_number=data.table_number,
         customer_name=data.customer_name,
         observations=data.observations,
-        status="aguardando_pagamento",
+        status=initial_status,
         total=total,
         pix_payload=pix_payload,
         created_at=datetime.utcnow(),
         updated_at=datetime.utcnow(),
     )
     db.add(order)
-    await db.flush()  # gera o ID sem commitar
+    await db.flush()
 
     for oi in data.items:
-        item = items_map[oi.item_id]
         order_item = OrderItem(
             id=str(uuid.uuid4()),
             order_id=order.id,
             item_id=oi.item_id,
             quantity=oi.quantity,
-            unit_price=float(item.price),
+            unit_price=_price(oi.item_id),
         )
         db.add(order_item)
 
     await db.commit()
-
-    # Usamos get_by_id para retornar o pedido com todos os relacionamentos carregados (eager loading)
-    # evitar erro MissingGreenlet do SQLAlchemy async
     return await get_by_id(db, order.id)
 
 

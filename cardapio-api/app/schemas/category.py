@@ -23,6 +23,7 @@ class ItemInCategory(BaseModel):
     name: str
     description: Optional[str]
     price: float
+    member_price: Optional[float] = None
     image_url: Optional[str]
     active: bool
 

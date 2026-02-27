@@ -1,22 +1,25 @@
 import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
-import { ArrowLeft, Minus, Plus, Trash2 } from 'lucide-react'
-import { useCartStore } from '@/store/cartStore'
+import { ArrowLeft, Minus, Plus, Trash2, BookOpen } from 'lucide-react'
+import { useCartStore, useMemberStore } from '@/store/cartStore'
 import { useSession, getTableNumber } from '@/hooks/useSession'
 import { orderApi } from '@/services/api'
 
 interface Props {
     onBack: () => void
-    onOrderCreated: (orderId: string) => void
+    onOrderCreated: (orderId: string) => void        // Pix → vai para PaymentPage
+    onOrderLancadoNaConta: (orderId: string) => void // Conta → vai direto para OrderStatus
 }
 
-export default function CartPage({ onBack, onOrderCreated }: Props) {
+export default function CartPage({ onBack, onOrderCreated, onOrderLancadoNaConta }: Props) {
     const { items, updateQuantity, removeItem, clearCart, total } = useCartStore()
+    const { member, isLoggedIn } = useMemberStore()
     const { sessionId } = useSession()
     const tableNumber = getTableNumber()
     const [customerName, setCustomerName] = useState('')
     const [observations, setObservations] = useState('')
 
+    // Pedido via Pix (padrão)
     const mutation = useMutation({
         mutationFn: () =>
             orderApi.createOrder({
@@ -24,12 +27,32 @@ export default function CartPage({ onBack, onOrderCreated }: Props) {
                 table_number: tableNumber,
                 customer_name: customerName.trim(),
                 observations: observations.trim() || undefined,
+                payment_method: 'pix',
                 items: items.map((i) => ({ item_id: i.id, quantity: i.quantity })),
             }),
         onSuccess: (order) => {
             localStorage.setItem('cardapio_active_order', order.id)
             clearCart()
             onOrderCreated(order.id)
+        },
+    })
+
+    // Pedido lançado na conta (somente membros)
+    const mutationConta = useMutation({
+        mutationFn: () =>
+            orderApi.createOrder({
+                session_id: sessionId,
+                table_number: tableNumber,
+                customer_name: member?.name ?? customerName.trim(),
+                observations: observations.trim() || undefined,
+                payment_method: 'conta',
+                member_id: member?.id,
+                items: items.map((i) => ({ item_id: i.id, quantity: i.quantity })),
+            }),
+        onSuccess: (order) => {
+            localStorage.setItem('cardapio_active_order', order.id)
+            clearCart()
+            onOrderLancadoNaConta(order.id)
         },
     })
 
@@ -101,19 +124,26 @@ export default function CartPage({ onBack, onOrderCreated }: Props) {
 
                 {/* Identificação e Observações */}
                 <div className="card p-4 space-y-4">
-                    <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-1">
-                            Seu nome *
-                        </label>
-                        <input
-                            type="text"
-                            placeholder="Ex: João"
-                            value={customerName}
-                            onChange={(e) => setCustomerName(e.target.value)}
-                            className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-400"
-                            maxLength={50}
-                        />
-                    </div>
+                    {isLoggedIn() ? (
+                        <div className="flex items-center gap-2 bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                            <span className="text-blue-600 text-sm font-medium">Logado como membro:</span>
+                            <span className="text-blue-800 font-bold text-sm">{member?.name}</span>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">
+                                Seu nome *
+                            </label>
+                            <input
+                                type="text"
+                                placeholder="Ex: João"
+                                value={customerName}
+                                onChange={(e) => setCustomerName(e.target.value)}
+                                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary-400"
+                                maxLength={50}
+                            />
+                        </div>
+                    )}
                     <div>
                         <label className="block text-sm font-semibold text-gray-700 mb-1">
                             Observações <span className="text-gray-400 font-normal">(opcional)</span>
@@ -137,18 +167,30 @@ export default function CartPage({ onBack, onOrderCreated }: Props) {
                         R$ {total().toFixed(2).replace('.', ',')}
                     </span>
                 </div>
-                {mutation.isError && (
+                {(mutation.isError || mutationConta.isError) && (
                     <p className="text-red-500 text-sm text-center">
                         Erro ao criar pedido. Tente novamente.
                     </p>
                 )}
+                {/* Botão Pix (sempre visível) */}
                 <button
                     onClick={() => mutation.mutate()}
-                    disabled={!customerName.trim() || mutation.isPending}
+                    disabled={(!customerName.trim() && !isLoggedIn()) || mutation.isPending || mutationConta.isPending}
                     className="w-full btn-primary"
                 >
-                    {mutation.isPending ? 'Enviando pedido...' : '🛒 Fazer Pedido'}
+                    {mutation.isPending ? 'Enviando pedido...' : 'Fazer Pedido (Pix)'}
                 </button>
+                {/* Botão Lançar na Conta (somente membros logados) */}
+                {isLoggedIn() && (
+                    <button
+                        onClick={() => mutationConta.mutate()}
+                        disabled={mutationConta.isPending || mutation.isPending}
+                        className="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-semibold py-3 px-4 rounded-xl transition-all"
+                    >
+                        <BookOpen size={18} />
+                        {mutationConta.isPending ? 'Lançando...' : 'Lançar na Conta'}
+                    </button>
+                )}
             </div>
         </div>
     )

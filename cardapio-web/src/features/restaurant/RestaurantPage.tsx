@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { LogIn, Bell, AlertCircle, ClipboardList, UtensilsCrossed, LogOut, QrCode } from 'lucide-react'
+import { LogIn, Bell, AlertCircle, ClipboardList, UtensilsCrossed, LogOut, QrCode, Users } from 'lucide-react'
 import { restaurantApi, orderApi } from '@/services/api'
 import type { Order } from '@/services/api'
 import ProductsPage from '@/features/restaurant/ProductsPage'
 import LinksPage from '@/features/restaurant/LinksPage'
 import HistoryPage from '@/features/restaurant/HistoryPage'
+import MembersPage from '@/features/restaurant/MembersPage'
 
 const STATUS_LABELS: Record<string, string> = {
     aguardando_pagamento: 'Aguardando Pagamento',
@@ -14,18 +15,21 @@ const STATUS_LABELS: Record<string, string> = {
     pronto: 'Pronto',
     entregue: 'Entregue',
     cancelado: 'Cancelado',
+    conta: 'Na Conta',
 }
 
 const NEXT_STATUS: Record<string, string> = {
     pagamento_declarado: 'em_preparacao',
     em_preparacao: 'pronto',
     pronto: 'entregue',
+    conta: 'em_preparacao',
 }
 
 const NEXT_STATUS_LABEL: Record<string, string> = {
     pagamento_declarado: 'Confirmar Pagamento',
     em_preparacao: 'Marcar como Pronto',
     pronto: 'Marcar como Entregue',
+    conta: 'Confirmar e Enviar à Cozinha',
 }
 
 function LoginPage({ onLogin }: { onLogin: (token: string) => void }) {
@@ -177,7 +181,7 @@ function OrderCard({ order }: { order: Order }) {
 
 export default function RestaurantPage() {
     const [token, setToken] = useState(localStorage.getItem('restaurant_token') || '')
-    const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'links' | 'history'>('orders')
+    const [activeTab, setActiveTab] = useState<'orders' | 'products' | 'links' | 'history' | 'members'>('orders')
     const wsRef = useRef<WebSocket | null>(null)
     const queryClient = useQueryClient()
 
@@ -202,7 +206,7 @@ export default function RestaurantPage() {
                 queryClient.invalidateQueries({ queryKey: ['restaurant-orders'] })
                 if (msg.event === 'pagamento_declarado') {
                     // Alerta sonoro simples (tela pisca)
-                    document.title = `🔔 Pix Recebido - Mesa ${msg.data.table_number}`
+                    document.title = `Pix Recebido - Mesa ${msg.data.table_number}`
                     setTimeout(() => (document.title = 'Painel do Restaurante'), 5000)
                 }
             }
@@ -273,6 +277,13 @@ export default function RestaurantPage() {
                     >
                         <ClipboardList size={15} /> Histórico
                     </button>
+                    <button
+                        onClick={() => setActiveTab('members')}
+                        className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-sm font-medium transition-all ${activeTab === 'members' ? 'bg-white text-primary-600' : 'text-primary-100'
+                            }`}
+                    >
+                        <Users size={15} /> Membros
+                    </button>
                 </div>
             </div>
 
@@ -310,6 +321,9 @@ export default function RestaurantPage() {
 
                 {/* Aba Histórico */}
                 {activeTab === 'history' && <HistoryPage />}
+
+                {/* Aba Membros */}
+                {activeTab === 'members' && <MembersPage />}
             </div>
         </div>
     )

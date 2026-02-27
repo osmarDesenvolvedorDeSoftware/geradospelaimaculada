@@ -9,6 +9,7 @@ ORDER_STATUSES = [
     "pronto",
     "entregue",
     "cancelado",
+    "conta",  # pedido lançado na conta — não precisa de pagamento pix
 ]
 
 
@@ -50,6 +51,8 @@ class OrderCreate(BaseModel):
     table_number: int
     customer_name: str
     observations: Optional[str] = None
+    member_id: Optional[str] = None       # None = pedido anônimo
+    payment_method: str = "pix"           # pix | conta
     items: list[OrderItemCreate]
 
 
@@ -65,6 +68,8 @@ class OrderResponse(BaseModel):
     observations: Optional[str]
     status: str
     total: float
+    payment_method: str
+    member_id: Optional[str] = None
     pix_payload: Optional[str]
     created_at: datetime
     updated_at: datetime
@@ -81,7 +86,12 @@ class OrderSummary(BaseModel):
     customer_name: str
     status: str
     total: float
+    payment_method: str
+    member_id: Optional[str] = None
     created_at: datetime
+
+    class Config:
+        from_attributes = True
 
     class Config:
         from_attributes = True

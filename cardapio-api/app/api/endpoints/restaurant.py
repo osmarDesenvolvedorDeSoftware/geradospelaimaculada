@@ -77,3 +77,145 @@ async def websocket_restaurant(websocket: WebSocket):
             await websocket.receive_text()
     except WebSocketDisconnect:
         manager.disconnect(websocket)
+
+
+# ─── Gerenciamento de Membros (admin) ────────────────────────────────────────
+
+@router.get("/restaurant/members", response_model=list)
+async def listar_membros(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista todos os membros cadastrados."""
+    from app.schemas.member import MemberResponse
+    members = await crud.crud_member.get_all(db)
+    return [MemberResponse.model_validate(m) for m in members]
+
+
+@router.post("/restaurant/members", response_model=dict)
+async def criar_membro(
+    data: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin cadastra um novo membro."""
+    from app.schemas.member import MemberCreate, MemberResponse
+    member_data = MemberCreate(**data)
+    existing = await crud.crud_member.get_by_email(db, member_data.email)
+    if existing:
+        raise HTTPException(status_code=400, detail="E-mail já cadastrado")
+    member = await crud.crud_member.create(db, member_data)
+    return MemberResponse.model_validate(member).model_dump()
+
+
+@router.patch("/restaurant/members/{member_id}", response_model=dict)
+async def atualizar_membro(
+    member_id: str,
+    data: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin atualiza dados ou status (ativo/inativo) do membro."""
+    from app.schemas.member import MemberUpdate, MemberResponse
+    update_data = MemberUpdate(**data)
+    member = await crud.crud_member.update_member(db, member_id, update_data)
+    if not member:
+        raise HTTPException(status_code=404, detail="Membro não encontrado")
+    return MemberResponse.model_validate(member).model_dump()
+
+
+@router.delete("/restaurant/members/{member_id}")
+async def deletar_membro(
+    member_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Admin remove um membro."""
+    deleted = await crud.crud_member.delete(db, member_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Membro não encontrado")
+    return {"ok": True}
+
+
+# ─── Contas dos Membros (admin) ───────────────────────────────────────────────
+
+@router.get("/restaurant/members/{member_id}/tabs", response_model=list)
+async def listar_contas_membro(
+    member_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Lista todas as contas (meses) de um membro."""
+    from app.schemas.member import MemberTabResponse
+    tabs = await crud.crud_member.get_tabs_by_member(db, member_id)
+    return [MemberTabResponse.model_validate(t) for t in tabs]
+
+
+@router.get("/restaurant/members/{member_id}/tabs/{tab_id}/orders", response_model=list)
+async def pedidos_da_conta(
+    member_id: str,
+    tab_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Retorna os pedidos de uma conta específica (extrato do membro)."""
+    from app.schemas.member import MemberTabResponse
+    from app.schemas.order import OrderSummary
+    tab = await crud.crud_member.get_tab_by_id(db, tab_id)
+    if not tab or tab.member_id != member_id:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+    orders = await crud.crud_member.get_orders_for_tab(db, member_id, tab.month, tab.year)
+    return [OrderSummary.model_validate(o) for o in orders]
+
+
+@router.post("/restaurant/members/{member_id}/tabs/{tab_id}/pay", response_model=dict)
+async def registrar_pagamento_conta(
+    member_id: str,
+    tab_id: str,
+    data: dict,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Admin confirma recebimento do pagamento da conta do membro
+    (independente de ser Pix ou cartão — a confirmação é sempre manual).
+    """
+    from app.schemas.member import MemberTabPayment, MemberTabResponse
+    payment = MemberTabPayment(**data)
+    tab = await crud.crud_member.get_tab_by_id(db, tab_id)
+    if not tab or tab.member_id != member_id:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+    updated_tab = await crud.crud_member.register_payment(db, tab_id, payment)
+    return MemberTabResponse.model_validate(updated_tab).model_dump()
+
+
+@router.get("/restaurant/members/{member_id}/tabs/{tab_id}/pix")
+async def gerar_pix_quitacao(
+    member_id: str,
+    tab_id: str,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Gera QR Code Pix com o saldo devedor da conta do membro
+    para o admin mostrar ao membro para quitar.
+    """
+    from app.services.pix_service import gerar_payload_pix, gerar_qr_code_base64
+    tab = await crud.crud_member.get_tab_by_id(db, tab_id)
+    if not tab or tab.member_id != member_id:
+        raise HTTPException(status_code=404, detail="Conta não encontrada")
+
+    saldo = float(tab.total_consumed) - float(tab.total_paid)
+    if saldo <= 0:
+        raise HTTPException(status_code=400, detail="Conta já está quitada")
+
+    pix_payload = gerar_payload_pix(saldo, f"CONTA-{tab_id[:8].upper()}")
+    qr_base64 = gerar_qr_code_base64(pix_payload)
+
+    return {
+        "pix_payload": pix_payload,
+        "qr_code_base64": qr_base64,
+        "saldo_devedor": saldo,
+        "tab_id": tab_id,
+    }
+
