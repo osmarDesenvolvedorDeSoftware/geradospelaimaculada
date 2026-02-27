@@ -44,9 +44,6 @@ export default function MemberLoginPage({ onBack, onSuccess }: Props) {
                 <div className="w-full max-w-sm space-y-5">
                     <div className="text-center space-y-1">
                         <h2 className="text-xl font-bold text-gray-900">Entrar como Membro</h2>
-                        <p className="text-gray-500 text-sm">
-                            Acesse com suas credenciais para ver preços especiais e poder lançar na conta
-                        </p>
                     </div>
 
                     {error && (
