@@ -17,29 +17,39 @@ export default function TvDashboard() {
 
     const readyOrders = orders?.filter((o) => o.status === 'pronto') ?? []
 
+    const hasSpeechSynthesis = typeof window !== 'undefined' &&
+        'speechSynthesis' in window &&
+        typeof SpeechSynthesisUtterance !== 'undefined'
+
     // Som e Voz
     const announceOrder = (customerName: string) => {
         if (!isStarted) return
 
         console.log(`Anunciando pedido de: ${customerName}`)
 
+        // 1. Som de sino
         try {
-            // 1. Som de sino
             const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3')
             audio.volume = 1.0
             audio.play().catch(e => console.error("Erro ao tocar áudio:", e))
-
-            // 2. Voz anunciando
-            setTimeout(() => {
-                window.speechSynthesis.cancel() // Limpa anúncios anteriores
-                const utterance = new SpeechSynthesisUtterance(`Pedido de ${customerName} pronto para retirada`)
-                utterance.lang = 'pt-BR'
-                utterance.rate = 0.9
-                utterance.volume = 1.0
-                window.speechSynthesis.speak(utterance)
-            }, 1000)
         } catch (err) {
-            console.error("Falha no anúncio:", err)
+            console.warn("Não foi possível tocar áudio:", err)
+        }
+
+        // 2. Voz anunciando (apenas se o navegador suportar Speech Synthesis)
+        if (hasSpeechSynthesis) {
+            setTimeout(() => {
+                try {
+                    window.speechSynthesis.cancel() // Limpa anúncios anteriores
+                    const utterance = new SpeechSynthesisUtterance(`Pedido de ${customerName} pronto para retirada`)
+                    utterance.lang = 'pt-BR'
+                    utterance.rate = 0.9
+                    utterance.volume = 1.0
+                    window.speechSynthesis.speak(utterance)
+                } catch (err) {
+                    console.warn("Falha no anúncio de voz:", err)
+                }
+            }, 1000)
         }
     }
 
@@ -99,13 +109,24 @@ export default function TvDashboard() {
                 </p>
                 <button
                     onClick={() => {
-                        // Desbloqueia o áudio/voz com ação do usuário
-                        const silentUtterance = new SpeechSynthesisUtterance("")
-                        window.speechSynthesis.speak(silentUtterance)
+                        // Desbloqueia o áudio/voz com ação do usuário (se suportado pelo navegador)
+                        if (hasSpeechSynthesis) {
+                            try {
+                                const silentUtterance = new SpeechSynthesisUtterance("")
+                                window.speechSynthesis.speak(silentUtterance)
+                            } catch (e) {
+                                console.warn("Não foi possível desbloquear Speech Synthesis:", e)
+                            }
+                        }
 
-                        const silentAudio = new Audio()
-                        silentAudio.play().catch(() => { })
+                        try {
+                            const silentAudio = new Audio()
+                            silentAudio.play().catch(() => { })
+                        } catch (e) {
+                            console.warn("Não foi possível desbloquear áudio:", e)
+                        }
 
+                        // Sempre inicia o painel, independente de suporte a áudio/voz
                         setIsStarted(true)
                     }}
                     className="flex items-center gap-4 bg-primary-600 hover:bg-primary-500 text-white text-3xl font-bold px-12 py-6 rounded-3xl transition-all transform hover:scale-105 active:scale-95 shadow-2xl shadow-primary-900/50"
