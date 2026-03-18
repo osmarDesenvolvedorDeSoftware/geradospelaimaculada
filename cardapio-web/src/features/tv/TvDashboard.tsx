@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Package, BellRing, Volume2, Play } from 'lucide-react'
-import { restaurantApi } from '@/services/api'
+import { tvApi } from '@/services/api'
 
 export default function TvDashboard() {
     const [isStarted, setIsStarted] = useState(false)
@@ -9,13 +9,11 @@ export default function TvDashboard() {
     const wsRef = useRef<WebSocket | null>(null)
     const queryClient = useQueryClient()
 
-    const { data: orders } = useQuery({
+    const { data: readyOrders = [] } = useQuery({
         queryKey: ['tv-orders'],
-        queryFn: restaurantApi.getActiveOrders,
+        queryFn: tvApi.getReadyOrders,
         refetchInterval: 10000,
     })
-
-    const readyOrders = orders?.filter((o) => o.status === 'pronto') ?? []
 
     const hasSpeechSynthesis = typeof window !== 'undefined' &&
         'speechSynthesis' in window &&

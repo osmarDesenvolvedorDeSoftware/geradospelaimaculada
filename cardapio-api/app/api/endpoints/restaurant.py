@@ -34,6 +34,19 @@ async def login(
     return {"access_token": token, "token_type": "bearer"}
 
 
+# ─── Painel de TV (público, sem autenticação) ─────────────────────────────────
+
+@router.get("/tv/ready-orders", response_model=list[OrderResponse])
+async def pedidos_prontos_tv(
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Retorna apenas os pedidos com status 'pronto' para exibição no painel de TV.
+    Endpoint público — não requer autenticação.
+    """
+    return await crud.crud_order.get_ready_orders(db)
+
+
 # ─── Painel do Restaurante (requer auth) ─────────────────────────────────────────
 
 @router.get("/restaurant/orders", response_model=list[OrderResponse])

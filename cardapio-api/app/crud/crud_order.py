@@ -39,6 +39,17 @@ async def get_active_orders(db: AsyncSession) -> list[Order]:
     return list(result.scalars().all())
 
 
+async def get_ready_orders(db: AsyncSession) -> list[Order]:
+    """Retorna apenas os pedidos com status 'pronto' para exibição na TV."""
+    result = await db.execute(
+        select(Order)
+        .where(Order.status == "pronto")
+        .options(selectinload(Order.items).selectinload(OrderItem.item))
+        .order_by(Order.created_at.asc())
+    )
+    return list(result.scalars().all())
+
+
 async def create(
     db: AsyncSession,
     data: OrderCreate,
