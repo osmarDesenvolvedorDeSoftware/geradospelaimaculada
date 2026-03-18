@@ -128,7 +128,7 @@ export default function HistoryPage() {
                                             {order.table_number}
                                         </td>
                                         <td className="px-6 py-4 text-gray-900">
-                                            {order.customer_name}
+                                            {order.member_name ?? order.customer_name}
                                         </td>
                                         <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={(order.items ?? []).map(i => `${i.quantity}x ${i.item_name}`).join(', ')}>
                                             {(order.items ?? []).map(i => `${i.quantity}x ${i.item_name}`).join(', ')}

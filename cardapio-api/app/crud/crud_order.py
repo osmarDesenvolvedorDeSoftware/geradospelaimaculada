@@ -33,7 +33,10 @@ async def get_active_orders(db: AsyncSession) -> list[Order]:
     result = await db.execute(
         select(Order)
         .where(Order.status.notin_(["entregue", "cancelado"]))
-        .options(selectinload(Order.items).selectinload(OrderItem.item))
+        .options(
+            selectinload(Order.items).selectinload(OrderItem.item),
+            selectinload(Order.member),
+        )
         .order_by(Order.created_at.asc())
     )
     return list(result.scalars().all())
@@ -122,7 +125,10 @@ async def get_history(
 ) -> list[Order]:
     query = (
         select(Order)
-        .options(selectinload(Order.items).selectinload(OrderItem.item))
+        .options(
+            selectinload(Order.items).selectinload(OrderItem.item),
+            selectinload(Order.member),
+        )
         .order_by(Order.created_at.desc())
     )
 
