@@ -21,8 +21,12 @@ class Member(Base):
         DateTime, nullable=False, default=datetime.utcnow
     )
 
-    tabs: Mapped[list["MemberTab"]] = relationship("MemberTab", back_populates="member")
-    orders: Mapped[list["Order"]] = relationship("Order", back_populates="member")
+    tabs: Mapped[list["MemberTab"]] = relationship(
+        "MemberTab", back_populates="member", cascade="all, delete-orphan", passive_deletes=True
+    )
+    orders: Mapped[list["Order"]] = relationship(
+        "Order", back_populates="member", passive_deletes=True
+    )
 
 
 class MemberTab(Base):
@@ -33,7 +37,7 @@ class MemberTab(Base):
         String(36), primary_key=True, default=lambda: str(uuid.uuid4())
     )
     member_id: Mapped[str] = mapped_column(
-        String(36), ForeignKey("members.id"), nullable=False, index=True
+        String(36), ForeignKey("members.id", ondelete="CASCADE"), nullable=False, index=True
     )
     month: Mapped[int] = mapped_column(Integer, nullable=False)   # 1–12
     year: Mapped[int] = mapped_column(Integer, nullable=False)

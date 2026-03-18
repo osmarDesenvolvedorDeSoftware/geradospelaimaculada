@@ -13,7 +13,7 @@ class Order(Base):
     )
     session_id: Mapped[str] = mapped_column(String(36), nullable=False, index=True)
     member_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("members.id"), nullable=True, index=True
+        String(36), ForeignKey("members.id", ondelete="SET NULL"), nullable=True, index=True
     )  # None = pedido anônimo
     # payment_method: pix | conta
     payment_method: Mapped[str] = mapped_column(String(10), nullable=False, default="pix")
