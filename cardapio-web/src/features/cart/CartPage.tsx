@@ -21,15 +21,18 @@ export default function CartPage({ onBack, onOrderCreated, onOrderLancadoNaConta
 
     // Pedido via Pix (padrão)
     const mutation = useMutation({
-        mutationFn: () =>
-            orderApi.createOrder({
+        mutationFn: () => {
+            const finalCustomerName = isLoggedIn() ? (member?.name ?? customerName.trim()) : customerName.trim()
+            return orderApi.createOrder({
                 session_id: sessionId,
                 table_number: tableNumber,
-                customer_name: customerName.trim(),
+                customer_name: finalCustomerName,
                 observations: observations.trim() || undefined,
                 payment_method: 'pix',
+                ...(isLoggedIn() && member?.id ? { member_id: member.id } : {}),
                 items: items.map((i) => ({ item_id: i.id, quantity: i.quantity })),
-            }),
+            })
+        },
         onSuccess: (order) => {
             localStorage.setItem('cardapio_active_order', order.id)
             clearCart()
