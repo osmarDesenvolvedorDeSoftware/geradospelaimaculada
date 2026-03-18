@@ -152,7 +152,7 @@ export default function MenuPage({ onOpenCart, onMemberLogin, onMemberAccount }:
         return categories
             .map((cat) => ({
                 ...cat,
-                items: cat.items.filter((i) => i.name.toLowerCase().includes(term) || i.description?.toLowerCase().includes(term)),
+                items: (cat.items ?? []).filter((i) => i.name.toLowerCase().includes(term) || i.description?.toLowerCase().includes(term)),
             }))
             .filter((cat) => cat.items.length > 0)
     }, [categories, searchTerm])
@@ -296,11 +296,11 @@ export default function MenuPage({ onOpenCart, onMemberLogin, onMemberAccount }:
                     >
                         <h2 className="text-lg font-bold text-gray-800 mb-3 flex items-center gap-2">
                             {cat.name}
-                            <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{cat.items.length}</span>
+                            <span className="text-xs font-normal text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">{(cat.items ?? []).length}</span>
                         </h2>
 
                         <div className="space-y-4">
-                            {cat.items.map((item) => {
+                            {(cat.items ?? []).map((item) => {
                                 const qty = getQuantity(item.id)
                                 return (
                                     <div

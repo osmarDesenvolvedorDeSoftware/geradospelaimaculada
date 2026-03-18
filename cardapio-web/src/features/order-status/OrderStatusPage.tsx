@@ -93,7 +93,7 @@ export default function OrderStatusPage({ orderId, onNewOrder }: Props) {
                 <div className="card w-full p-4">
                     <h3 className="font-semibold text-gray-700 mb-3">Resumo do Pedido</h3>
                     <div className="space-y-2">
-                        {order.items.map((item) => (
+                        {(order.items ?? []).map((item) => (
                             <div key={item.id} className="flex justify-between text-sm">
                                 <span className="text-gray-600">
                                     {item.quantity}x {item.item_name || 'Item'}
