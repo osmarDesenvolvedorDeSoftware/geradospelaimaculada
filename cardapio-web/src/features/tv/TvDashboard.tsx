@@ -175,10 +175,10 @@ export default function TvDashboard() {
                                 className="bg-slate-900 border-2 border-slate-800 rounded-[40px] p-10 flex flex-col items-center text-center shadow-2xl animate-in zoom-in duration-500"
                             >
                                 <div className="text-slate-400 text-2xl font-bold uppercase mb-4 tracking-widest">
-                                    Cliente
+                                    {order.member_id ? 'Membro' : 'Cliente'}
                                 </div>
                                 <div className="text-6xl font-black text-white mb-6 break-words w-full">
-                                    {order.customer_name.split(' ')[0]}
+                                    {(order.member_name || order.customer_name || '').split(' ')[0]}
                                 </div>
                                 <div className="bg-green-500/10 text-green-400 px-8 py-4 rounded-2xl text-3xl font-black uppercase border border-green-500/20">
                                     PRONTO
