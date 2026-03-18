@@ -102,7 +102,7 @@ function OrderCard({ order }: { order: Order }) {
             <div className="flex items-center justify-between">
                 <div>
                     <p className="font-bold text-gray-900">
-                        Mesa {order.table_number} · {order.customer_name}
+                        Mesa {order.table_number} · {order.member_name ?? order.customer_name}
                     </p>
                     <p className="text-xs text-gray-400 mt-0.5">
                         {new Date(order.created_at).toLocaleTimeString('pt-BR', {

@@ -60,11 +60,25 @@ class OrderStatusUpdate(BaseModel):
     status: str
 
 
+def _extract_member_name(data) -> Optional[dict]:
+    """Helper: returns a dict with member_name injected if member relationship is loaded."""
+    if isinstance(data, dict) or not hasattr(data, '__table__'):
+        return None
+    member = data.__dict__.get('member')
+    if member is None:
+        return None
+    return {
+        **{c.key: getattr(data, c.key) for c in data.__table__.columns},
+        "member_name": member.name,
+    }
+
+
 class OrderResponse(BaseModel):
     id: str
     session_id: str
     table_number: int
     customer_name: str
+    member_name: Optional[str] = None
     observations: Optional[str]
     status: str
     total: float
@@ -75,6 +89,15 @@ class OrderResponse(BaseModel):
     updated_at: datetime
     items: list[OrderItemResponse] = []
 
+    @model_validator(mode='before')
+    @classmethod
+    def set_member_name(cls, data):
+        base = _extract_member_name(data)
+        if base is not None:
+            base["items"] = data.__dict__.get('items', [])
+            return base
+        return data
+
     class Config:
         from_attributes = True
 
@@ -84,14 +107,17 @@ class OrderSummary(BaseModel):
     id: str
     table_number: int
     customer_name: str
+    member_name: Optional[str] = None
     status: str
     total: float
     payment_method: str
     member_id: Optional[str] = None
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    @model_validator(mode='before')
+    @classmethod
+    def set_member_name(cls, data):
+        return _extract_member_name(data) or data
 
     class Config:
         from_attributes = True

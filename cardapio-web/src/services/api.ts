@@ -39,6 +39,7 @@ export interface Order {
     session_id: string
     table_number: number
     customer_name: string
+    member_name?: string
     observations?: string
     status: string
     total: number
