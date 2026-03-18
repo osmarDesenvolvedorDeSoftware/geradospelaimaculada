@@ -132,7 +132,7 @@ function MemberTabsModal({ member, onClose }: { member: Member; onClose: () => v
                                                             <span className="font-bold">R$ {order.total.toFixed(2).replace('.', ',')}</span>
                                                         </div>
                                                         <div className="text-gray-600">
-                                                            {order.items.map((i) => `${i.quantity}x ${i.item_name}`).join(', ')}
+                                                            {(order.items ?? []).map((i) => `${i.quantity}x ${i.item_name}`).join(', ')}
                                                         </div>
                                                     </div>
                                                 ))}

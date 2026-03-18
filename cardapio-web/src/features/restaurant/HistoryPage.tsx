@@ -130,8 +130,8 @@ export default function HistoryPage() {
                                         <td className="px-6 py-4 text-gray-900">
                                             {order.customer_name}
                                         </td>
-                                        <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={order.items.map(i => `${i.quantity}x ${i.item_name}`).join(', ')}>
-                                            {order.items.map(i => `${i.quantity}x ${i.item_name}`).join(', ')}
+                                        <td className="px-6 py-4 text-gray-600 max-w-xs truncate" title={(order.items ?? []).map(i => `${i.quantity}x ${i.item_name}`).join(', ')}>
+                                            {(order.items ?? []).map(i => `${i.quantity}x ${i.item_name}`).join(', ')}
                                         </td>
                                         <td className="px-6 py-4 font-bold text-gray-900">
                                             {formatCurrency(order.total)}

@@ -126,7 +126,7 @@ function OrderCard({ order }: { order: Order }) {
             </div>
 
             <div className="text-sm text-gray-600 space-y-1">
-                {order.items.map((item) => (
+                {(order.items ?? []).map((item) => (
                     <div key={item.id} className="flex justify-between">
                         <span>{item.quantity}x {item.item_name || 'Item'}</span>
                         <span>R$ {(item.unit_price * item.quantity).toFixed(2).replace('.', ',')}</span>
