@@ -137,7 +137,7 @@ export default function TvDashboard() {
     }
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col overflow-hidden font-sans">
+        <div className="min-h-screen bg-black flex flex-col overflow-hidden font-sans">
             {/* Header / Relógio */}
             <div className="bg-slate-900 border-b border-slate-800 px-12 py-8 flex justify-between items-center">
                 <div className="flex items-center gap-6">
