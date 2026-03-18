@@ -215,6 +215,16 @@ export default function RestaurantPage() {
         return () => ws.close()
     }, [token, queryClient])
 
+    // Escuta o evento "unauthorized" disparado pelo interceptor do axios quando
+    // a API retorna 401 (token expirado ou inválido), forçando o retorno à tela de login.
+    useEffect(() => {
+        const handleUnauthorized = (e: Event) => {
+            if ((e as CustomEvent).detail?.tokenType === 'restaurant') setToken('')
+        }
+        window.addEventListener('unauthorized', handleUnauthorized)
+        return () => window.removeEventListener('unauthorized', handleUnauthorized)
+    }, [])
+
     const handleLogout = () => {
         localStorage.removeItem('restaurant_token')
         setToken('')

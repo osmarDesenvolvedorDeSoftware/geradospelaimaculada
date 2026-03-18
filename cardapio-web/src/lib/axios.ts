@@ -27,4 +27,27 @@ api.interceptors.request.use((config) => {
     return config
 })
 
+// Trata respostas 401 (token expirado ou inválido): limpa o token armazenado
+// e dispara o evento "unauthorized" para que os componentes possam reagir.
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (error.response?.status === 401) {
+            const url: string = error.config?.url ?? ''
+            let tokenType: 'restaurant' | 'member' | null = null
+            if (url.startsWith('/restaurant') || url.startsWith('/auth')) {
+                localStorage.removeItem('restaurant_token')
+                tokenType = 'restaurant'
+            } else if (url.startsWith('/members')) {
+                localStorage.removeItem('member_token')
+                tokenType = 'member'
+            }
+            if (tokenType) {
+                window.dispatchEvent(new CustomEvent('unauthorized', { detail: { tokenType } }))
+            }
+        }
+        return Promise.reject(error)
+    }
+)
+
 export default api
