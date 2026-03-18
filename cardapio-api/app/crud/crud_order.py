@@ -47,7 +47,10 @@ async def get_ready_orders(db: AsyncSession) -> list[Order]:
     result = await db.execute(
         select(Order)
         .where(Order.status == "pronto")
-        .options(selectinload(Order.items).selectinload(OrderItem.item))
+        .options(
+            selectinload(Order.items).selectinload(OrderItem.item),
+            selectinload(Order.member),
+        )
         .order_by(Order.created_at.asc())
     )
     return list(result.scalars().all())
