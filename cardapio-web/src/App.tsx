@@ -24,7 +24,7 @@ function AppContent() {
   useEffect(() => {
     const hash = window.location.hash
     const pathname = window.location.pathname
-    if (hash === '#/restaurante') {
+    if (hash === '#restaurante') {
       setPage('restaurant')
       return
     }
