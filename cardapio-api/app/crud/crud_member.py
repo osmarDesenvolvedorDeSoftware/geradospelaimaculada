@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update
+from sqlalchemy import select, update, delete as sql_delete
 from app.models.member import Member, MemberTab
 from app.models.order import Order
 from app.schemas.member import MemberCreate, MemberUpdate, MemberTabPayment
@@ -54,6 +54,7 @@ async def delete(db: AsyncSession, member_id: str) -> bool:
     member = await get_by_id(db, member_id)
     if not member:
         return False
+    await db.execute(sql_delete(MemberTab).where(MemberTab.member_id == member_id))
     await db.delete(member)
     await db.commit()
     return True
