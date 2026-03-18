@@ -23,11 +23,12 @@ function AppContent() {
   // Roteamento simples baseado no localStorage e hash da URL
   useEffect(() => {
     const hash = window.location.hash
+    const pathname = window.location.pathname
     if (hash === '#/restaurante') {
       setPage('restaurant')
       return
     }
-    if (hash === '#/tv') {
+    if (hash === '#/tv' || pathname === '/painel-tv') {
       setPage('tv')
       return
     }
