@@ -98,6 +98,11 @@ export const restaurantApi = {
         api.get<Order[]>('/restaurant/history', { params: filters }).then((r) => r.data),
 }
 
+export const tvApi = {
+    getReadyOrders: () =>
+        api.get<Order[]>('/tv/ready-orders').then((r) => r.data),
+}
+
 export const adminApi = {
     // Categorias
     getCategories: () =>
