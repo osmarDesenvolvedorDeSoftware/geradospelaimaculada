@@ -1,12 +1,15 @@
 import { useState } from 'react'
-import { Copy, Check, ExternalLink } from 'lucide-react'
+import { Copy, Check, ExternalLink, Tv } from 'lucide-react'
 import { QRCodeCanvas } from 'qrcode.react'
 
 export default function LinksPage() {
     const [baseUrl] = useState(window.location.origin)
     const [copied, setCopied] = useState<number | null>(null)
+    const [copiedTv, setCopiedTv] = useState(false)
 
     const tables = Array.from({ length: 20 }, (_, i) => i + 1)
+
+    const tvLink = `${baseUrl}/painel-tv`
 
     const generateLink = (tableNum: number) => {
         // Gera token Base64 "mesa:N"
@@ -20,8 +23,49 @@ export default function LinksPage() {
         setTimeout(() => setCopied(null), 2000)
     }
 
+    const copyTvLink = () => {
+        navigator.clipboard.writeText(tvLink)
+        setCopiedTv(true)
+        setTimeout(() => setCopiedTv(false), 2000)
+    }
+
     return (
         <div className="space-y-6">
+            {/* Painel de TV */}
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 no-print">
+                <div className="flex items-center gap-2 mb-3">
+                    <Tv size={20} className="text-primary-600" />
+                    <h2 className="text-xl font-bold text-gray-900">Painel de TV</h2>
+                </div>
+                <p className="text-gray-500 mb-4 text-sm">
+                    Abra este link em uma TV ou monitor na cozinha/balcão para exibir os pedidos prontos em tempo real.
+                </p>
+                <div className="flex items-center gap-2">
+                    <span className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-700 font-mono truncate">
+                        {tvLink}
+                    </span>
+                    <button
+                        onClick={copyTvLink}
+                        className={`flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${copiedTv
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-primary-50 text-primary-700 hover:bg-primary-100'
+                            }`}
+                    >
+                        {copiedTv ? <Check size={16} /> : <Copy size={16} />}
+                        {copiedTv ? 'Copiado!' : 'Copiar'}
+                    </button>
+                    <a
+                        href={tvLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="p-2.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-xl transition-colors"
+                        title="Abrir Painel de TV"
+                    >
+                        <ExternalLink size={18} />
+                    </a>
+                </div>
+            </div>
+
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 no-print">
                 <h2 className="text-xl font-bold text-gray-900 mb-2">Gerador de QR Codes</h2>
                 <p className="text-gray-500 mb-4">
